@@ -1,0 +1,8 @@
+[phases.install]
+cmds = ["pnpm install --no-frozen-lockfile"]
+
+[phases.build]
+cmds = ["echo 'no build step'"]
+
+[start]
+cmd = "pnpm --filter @verdict/socket start"
