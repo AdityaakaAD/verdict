@@ -42,13 +42,14 @@ export default async function LeaderboardPage({
   const tab = searchParams.tab === 'weekly' ? 'weekly' : 'daily';
   const view = tab === 'weekly' ? 'weekly_leaderboard' : 'daily_leaderboard';
 
-  const { data: rows } = await supabase
+  const { data: rawRows } = await supabase
     .from(view as 'daily_leaderboard')
     .select('user_id, alias, avatar_id, region, tier, quality_score, rounds_played')
     .eq('region', profile.region)
     .order('quality_score', { ascending: false })
-    .limit(50)
-    .returns<LeaderboardRow[]>();
+    .limit(50);
+
+  const rows = rawRows as LeaderboardRow[] | null;
 
   const entries = rows ?? [];
   const myRank = entries.findIndex((r) => r.user_id === user.id) + 1;

@@ -25,7 +25,7 @@ export default async function FeedPage() {
   // Top upvoted statements from rooms completed in the last 48h
   const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
 
-  const { data: rows } = await supabase
+  const { data: rawRows } = await supabase
     .from('room_participants')
     .select(`
       id,
@@ -39,8 +39,9 @@ export default async function FeedPage() {
     .gt('statement_upvotes', 0)
     .gte('rooms.completed_at', since)
     .order('statement_upvotes', { ascending: false })
-    .limit(30)
-    .returns<StatementRow[]>();
+    .limit(30);
+
+  const rows = rawRows as StatementRow[] | null;
 
   const statements = (rows ?? []).filter(
     (r) => r.statement && r.profiles && r.rooms?.scenarios,

@@ -42,7 +42,8 @@ export default async function LibraryPage({
 
   if (category) query = query.eq('category', category);
 
-  const { data: scenarios } = await query.returns<ScenarioRow[]>();
+  const { data: rawScenarios } = await query;
+  const scenarios = rawScenarios as ScenarioRow[] | null;
 
   const CATEGORIES = [
     ['', 'All'],
