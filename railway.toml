@@ -1,8 +1,8 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install --no-frozen-lockfile && pnpm --filter @verdict/socket build"
+buildCommand = "pnpm install --no-frozen-lockfile"
 
 [deploy]
-startCommand = "node apps/socket/dist/server.js"
+startCommand = "pnpm --filter @verdict/socket start"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
