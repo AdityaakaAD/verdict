@@ -1,0 +1,25 @@
+{
+  "name": "verdict",
+  "version": "0.1.0",
+  "private": true,
+  "description": "VERDICT — real-time social judgment game. Monorepo root.",
+  "packageManager": "pnpm@10.33.2",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @verdict/web dev",
+    "dev:socket": "pnpm --filter @verdict/socket dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\" --ignore-path .gitignore",
+    "clean": "pnpm -r exec rm -rf .next dist node_modules && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.8",
+    "typescript": "^5.6.3"
+  }
+}

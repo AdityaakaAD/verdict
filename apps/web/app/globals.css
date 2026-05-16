@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================================================
+   VERDICT — design tokens (spec section 11). Enforce strictly. Crimson is
+   reserved for verdicts, conversion moments, active streak, primary CTAs,
+   micro-divider dots, and the "Tonight's Verdict" label dot. Nothing else.
+   ========================================================================== */
+
+:root {
+  --bg-primary: #0a0a0b;
+  --bg-secondary: #0f0f11;
+  --bg-tertiary: #1a1a1e;
+
+  --border-subtle: #1f1f23;
+  --border-active: #2a2a30;
+
+  --text-primary: #f8f7f4;
+  --text-secondary: #888782;
+  --text-tertiary: #5a5a56;
+
+  --accent: #ff3b30;
+  --accent-hover: #ff6b5c;
+
+  --vote-a: #ff3b30;
+  --vote-b: #2d7ff9;
+  --vote-neutral: #2a2a30;
+
+  --success: #30d158;
+  --gold: #d4a04c;
+
+  color-scheme: dark;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  font-weight: 400;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  text-rendering: optimizeLegibility;
+}
+
+/* Disable default focus rings; we render our own via border state. */
+:focus {
+  outline: none;
+}
+
+/* Selection styling — never crimson, use a muted tone. */
+::selection {
+  background-color: var(--border-active);
+  color: var(--text-primary);
+}
+
+/* Custom hairline border utility — 0.5px true hairline on retina, falls back
+   to 1px on non-retina. Always prefer this over `border` / `border-2`. */
+@layer utilities {
+  .border-hairline {
+    border: 0.5px solid var(--border-subtle);
+  }
+  .border-hairline-active {
+    border: 0.5px solid var(--border-active);
+  }
+  .border-hairline-accent {
+    border: 0.5px solid var(--accent);
+  }
+  .border-b-hairline {
+    border-bottom: 0.5px solid var(--border-subtle);
+  }
+  .border-t-hairline {
+    border-top: 0.5px solid var(--border-subtle);
+  }
+  .label-caps {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    line-height: 14px;
+    font-weight: 500;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+/* Disable autofill yellow on inputs. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-primary);
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-secondary) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Safe-area handling for installed PWA on iOS / Android. */
+@supports (padding: max(0px)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

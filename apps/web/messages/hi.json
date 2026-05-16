@@ -1,0 +1,7 @@
+{
+  "_comment": "Hindi pack stub — ships in v1.1. Missing keys fall back to en.json.",
+  "marketing": {
+    "tagline_line_1": "Judge the world.",
+    "tagline_line_2": "Be judged by it."
+  }
+}

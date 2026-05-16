@@ -1,0 +1,57 @@
+{
+  "marketing": {
+    "tagline_line_1": "Judge the world.",
+    "tagline_line_2": "Be judged by it.",
+    "subhead": "Each night, a scenario drops. Strangers argue. Someone is on the wrong side of the room. Five minutes. One verdict.",
+    "cta_signup": "Reserve your seat",
+    "cta_login": "I already have an alias"
+  },
+  "onboarding": {
+    "welcome": {
+      "headline_line_1": "Judge the world.",
+      "headline_line_2": "Be judged by it.",
+      "body": "Six strangers. One scenario. Five minutes to decide who got it right.",
+      "cta": "Begin"
+    },
+    "interests": {
+      "title": "What do you care about?",
+      "subtitle": "Pick five. This is what we send to the courtroom you join.",
+      "footer_hint": "Pick exactly {required} of {total}",
+      "cta": "Continue"
+    },
+    "region": {
+      "title": "Where are you reading from?",
+      "subtitle": "This shapes the scenarios you see and the leaderboard you compete on.",
+      "cta": "Continue"
+    },
+    "alias": {
+      "title": "Choose your alias.",
+      "subtitle": "This is who you are inside the courtroom. Choose carefully — you cannot change it for thirty days.",
+      "placeholder": "yourname",
+      "rules": "3-15 characters. Lowercase letters, numbers, underscore.",
+      "suggestions": "Taken. Try one of these:",
+      "cta": "Continue"
+    },
+    "avatar": {
+      "title": "Pick a mark.",
+      "subtitle": "This is what other jurors see beside your verdict.",
+      "cta": "Continue"
+    },
+    "tutorial": {
+      "title": "One practice round.",
+      "subtitle": "Five bots, one scenario. Feel the loop, then play for real.",
+      "cta": "Step into the courtroom"
+    }
+  },
+  "vote": {
+    "voted_count": "{voted} of {total}",
+    "tied": "Hung jury",
+    "unanimous": "Unanimous"
+  },
+  "common": {
+    "back": "Back",
+    "skip": "Skip",
+    "continue": "Continue",
+    "cancel": "Cancel"
+  }
+}
