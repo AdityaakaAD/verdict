@@ -1,14 +1,12 @@
-// AI scenario generator entry point. Runs as a cron at 3 AM IST in production
-// (Vercel Cron triggers apps/web/api/cron/daily-scenario, which invokes this).
-//
-// Phase 5 implementation. Stub here so the workspace resolves and the cron
-// route has an import surface to grow into.
+// AI scenario generator entry point.
+// Vercel Cron triggers apps/web/app/api/cron/news-trigger/route.ts which calls
+// runNewsTrigger(), and apps/web/app/api/cron/daily-scenario which may call
+// generateDailyScenarios() for the 3 AM curated batch.
 
+export { runNewsTrigger } from './news-trigger.js';
+export type { NewsTriggerConfig, NewsTriggerResult } from './news-trigger.js';
+
+// Legacy stub — still here so any existing import surface doesn't break.
 export async function generateDailyScenarios(): Promise<{ inserted: number }> {
-  // 1. Fetch top 10 global headlines via NewsAPI (fallback: RSS).
-  // 2. For each: prompt Claude Sonnet with prompts/generate.md, parse JSON.
-  // 3. Run word blacklist + OpenAI Moderation API.
-  // 4. Insert into scenarios with is_active=false, source='ai_generated'.
-  // 5. Email founder digest via Resend with signed approve links.
   return { inserted: 0 };
 }

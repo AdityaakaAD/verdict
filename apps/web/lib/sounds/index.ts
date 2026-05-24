@@ -20,7 +20,14 @@ export type SoundId =
   | 'vote_flip'
   | 'conversion_gong'
   | 'win_sting'
-  | 'loss_sting';
+  | 'loss_sting'
+  | 'juror_join'
+  | 'heartbeat'
+  | 'room_ambience'
+  | 'flip'
+  | 'gong'
+  | 'win'
+  | 'loss';
 
 interface SoundConfig {
   src: string;
@@ -32,13 +39,21 @@ interface SoundConfig {
 // If a file is missing, the try/catch in play() keeps the game silent
 // rather than breaking.
 const CONFIG: Record<SoundId, SoundConfig> = {
-  vote_tap: { src: '/sounds/vote-tap.mp3', volume: 0.5 },
-  statement_send: { src: '/sounds/statement-send.mp3', volume: 0.6 },
-  tick: { src: '/sounds/tick.mp3', volume: 0.35, loop: true },
+  vote_tap: { src: '/sounds/vote-tap.mp3', volume: 0.6 },
+  statement_send: { src: '/sounds/statement-send.mp3', volume: 0.4 },
+  tick: { src: '/sounds/tick.mp3', volume: 0.3, loop: false },
   vote_flip: { src: '/sounds/vote-flip.mp3', volume: 0.55 },
-  conversion_gong: { src: '/sounds/conversion-gong.mp3', volume: 0.7 },
-  win_sting: { src: '/sounds/win-sting.mp3', volume: 0.7 },
-  loss_sting: { src: '/sounds/loss-sting.mp3', volume: 0.5 },
+  conversion_gong: { src: '/sounds/conversion-gong.mp3', volume: 0.96 }, // 1.2x loud
+  win_sting: { src: '/sounds/win-sting.mp3', volume: 0.6 },
+  loss_sting: { src: '/sounds/loss-sting.mp3', volume: 0.4 },
+  // Spec section 4 additions
+  juror_join: { src: '/sounds/juror-join.mp3', volume: 0.4 },
+  heartbeat: { src: '/sounds/heartbeat.mp3', volume: 0.3, loop: true },
+  room_ambience: { src: '/sounds/ambience.mp3', volume: 0.08, loop: true },
+  flip: { src: '/sounds/vote-flip.mp3', volume: 0.5 },     // alias
+  gong: { src: '/sounds/conversion-gong.mp3', volume: 0.8 }, // alias
+  win: { src: '/sounds/win-sting.mp3', volume: 0.6 },       // alias
+  loss: { src: '/sounds/loss-sting.mp3', volume: 0.4 },     // alias
 };
 
 const STORAGE_KEY = 'verdict.sound.enabled';

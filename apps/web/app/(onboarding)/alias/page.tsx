@@ -69,7 +69,8 @@ export default function AliasPage() {
               value={value}
               onChange={(e) => setValue(e.target.value.toLowerCase())}
               placeholder="yourname"
-              className="h-12 w-full bg-transparent px-2 font-mono text-15 text-text-primary placeholder:text-text-tertiary focus:outline-none"
+              className="alias-input h-12 w-full bg-transparent px-2 text-15 text-text-primary placeholder:text-text-tertiary focus:outline-none"
+              style={{ fontFamily: 'var(--font-display)', caretColor: 'var(--accent)' }}
             />
             <span className="pr-3 font-mono text-11 text-text-tertiary">
               {value.length}/{ALIAS_RULES.maxLength}

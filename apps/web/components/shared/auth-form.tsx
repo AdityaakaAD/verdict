@@ -55,7 +55,13 @@ export function AuthForm({ mode, next, error }: Props) {
       provider: 'google',
       options: { redirectTo },
     });
-    if (error) setFormError(error.message);
+    if (error) {
+      if (error.message.toLowerCase().includes('provider') || error.message.toLowerCase().includes('not enabled')) {
+        setFormError('Google sign-in is not configured yet. Use email below.');
+      } else {
+        setFormError(error.message);
+      }
+    }
   }
 
   if (sent) {

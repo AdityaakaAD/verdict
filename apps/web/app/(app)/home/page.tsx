@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { TIERS, type TierId } from '@verdict/shared';
 import { createClient } from '@/lib/supabase/server';
-import { HomeCountdown } from '@/components/home/countdown';
+import { FeaturedCard } from '@/components/home/FeaturedCard';
+import { TopVoicesFeed } from '@/components/home/TopVoicesFeed';
 
 export const metadata = { title: 'Home — Verdict' };
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,25 @@ interface ProfileRow {
   tier: string;
   verdict_score: number;
   current_streak: number;
+}
+
+interface GrandCaseRow {
+  id: string;
+  title: string;
+  week_start: string;
+  total_participants: number;
+}
+
+interface GrandCaseChapterRow {
+  chapter_number: number;
+  title: string;
+  drops_at: string;
+}
+
+interface SpecialEventRow {
+  id: string;
+  text: string;
+  question: string;
 }
 
 export default async function HomePage() {
@@ -34,6 +54,44 @@ export default async function HomePage() {
 
   const tier = TIERS.find((t) => t.id === (profile.tier as TierId)) ?? TIERS[0];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+
+  // Active grand case
+  const { data: grandCase } = await db
+    .from('grand_cases')
+    .select('id, title, week_start, total_participants')
+    .eq('is_active', true)
+    .order('week_start', { ascending: false })
+    .limit(1)
+    .maybeSingle() as { data: GrandCaseRow | null };
+
+  // Current dropped chapter
+  let currentChapter: GrandCaseChapterRow | null = null;
+  if (grandCase) {
+    const { data: ch } = await db
+      .from('grand_case_chapters')
+      .select('chapter_number, title, drops_at')
+      .eq('case_id', grandCase.id)
+      .lte('drops_at', new Date().toISOString())
+      .order('chapter_number', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    currentChapter = ch as GrandCaseChapterRow | null;
+  }
+
+  // Special event scenario (breaking/topical, last 6 hours)
+  const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+  const { data: specialEvent } = await db
+    .from('scenarios')
+    .select('id, text, question')
+    .eq('is_active', true)
+    .eq('freshness_tier', 'topical')
+    .gte('created_at', sixHoursAgo)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle() as { data: SpecialEventRow | null };
+
   return (
     <main className="mx-auto max-w-[480px] px-6 pb-28 pt-12">
       <header className="flex items-center justify-between">
@@ -46,22 +104,33 @@ export default async function HomePage() {
         </Link>
       </header>
 
-      {/* Tonight's verdict — the page's centerpiece */}
-      <section className="mt-12 rounded-lg border-hairline bg-bg-secondary p-5">
-        <div className="flex items-center justify-between">
-          <p className="text-11 text-text-secondary label-caps">
-            <span className="mr-2 inline-block h-1.5 w-1.5 translate-y-[-1px] rounded-full bg-accent align-middle" aria-hidden />
-            Tonight’s verdict
-          </p>
-          <HomeCountdown timezone={profile.timezone} />
-        </div>
-        <h1 className="mt-3 font-serif text-22 font-medium leading-tight">
-          The courtroom opens at 9:00 pm.
-        </h1>
-        <p className="mt-2 text-13 text-text-secondary">
-          One scenario. Five minutes. Reserve your seat when the timer hits zero.
-        </p>
-        <div className="mt-4 flex flex-col gap-3">
+      {/* Special event — if active, shows ABOVE featured card */}
+      {specialEvent && (
+        <section className="mt-10">
+          <Link href="/match" className="block">
+            <div className="rounded-md border-hairline bg-bg-secondary p-5 relative overflow-hidden">
+              {/* Pulsing live indicator */}
+              <div className="flex items-center gap-2 mb-3">
+                <span
+                  className="h-2 w-2 rounded-full bg-accent animate-pulse-subtle"
+                  aria-hidden
+                />
+                <span className="text-11 text-accent label-caps font-medium">Live · Breaking</span>
+              </div>
+              <p className="font-serif text-15 leading-relaxed text-text-primary line-clamp-3">
+                {specialEvent.text}
+              </p>
+              <p className="mt-2 text-13 text-text-secondary">{specialEvent.question}</p>
+              <p className="mt-3 text-11 text-accent label-caps">Join now →</p>
+            </div>
+          </Link>
+        </section>
+      )}
+
+      {/* Featured card — 3D tilt, noise texture, crimson depletion bar */}
+      <section className={specialEvent ? 'mt-4' : 'mt-12'}>
+        <FeaturedCard timezone={profile.timezone} />
+        <div className="mt-3 flex flex-col gap-3">
           <Link
             href="/match"
             className="flex h-11 items-center justify-center rounded-md bg-accent text-13 font-medium text-bg-primary transition-colors duration-100 hover:bg-accent-hover"
@@ -76,40 +145,79 @@ export default async function HomePage() {
               Practice round
             </Link>
             <Link
-              href="/library"
+              href="/swipe"
               className="flex h-11 items-center justify-center rounded-md border-hairline text-13 text-text-primary transition-colors duration-100 hover:border-hairline-active"
             >
-              Browse library
+              Swipe feed
             </Link>
           </div>
         </div>
       </section>
 
+      {/* Grand Case card */}
+      {grandCase && currentChapter && (
+        <section className="mt-8">
+          <Link href="/grand-case" className="block">
+            <div className="rounded-md border-hairline bg-bg-secondary p-5 hover:border-hairline-active transition-colors">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-11 text-accent label-caps font-medium">Grand Case</span>
+                <span className="text-11 text-text-tertiary label-caps">
+                  Day {currentChapter.chapter_number} of 5
+                </span>
+              </div>
+              <p className="font-serif text-18 font-medium text-text-primary">
+                {grandCase.title}
+              </p>
+              <p className="mt-1 text-13 text-text-secondary">{currentChapter.title}</p>
+              {/* Progress dots */}
+              <div className="mt-3 flex gap-1.5">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <div
+                    key={n}
+                    className="h-1 flex-1 rounded-full"
+                    style={{
+                      background:
+                        n < currentChapter.chapter_number
+                          ? 'var(--text-tertiary)'
+                          : n === currentChapter.chapter_number
+                          ? 'var(--accent)'
+                          : 'var(--bg-tertiary)',
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                <span className="font-mono text-11 text-text-tertiary">
+                  {grandCase.total_participants.toLocaleString()} following
+                </span>
+                <span className="text-11 text-text-secondary">Read today →</span>
+              </div>
+            </div>
+          </Link>
+        </section>
+      )}
+
       {/* Your standing */}
       <section className="mt-8 grid grid-cols-3 gap-3">
-        <Stat label="Tier" value={tier.name} />
+        <Stat label="Tier" value={tier!.name} />
         <Stat label="Score" value={String(profile.verdict_score)} mono />
         <Stat label="Streak" value={`${profile.current_streak}d`} mono accent={profile.current_streak > 0} />
       </section>
 
-      {/* Yesterday's verdict — placeholder until Phase 4 completes a real round */}
+      {/* Yesterday's verdict */}
       <section className="mt-8">
         <p className="text-11 text-text-secondary label-caps">Yesterday</p>
         <div className="mt-3 rounded-md border-hairline bg-bg-secondary p-5">
           <p className="text-15 text-text-secondary">
-            The courtroom hasn’t met yet. When it does, last night’s split lands here.
+            The courtroom hasn&apos;t met yet. When it does, last night&apos;s split lands here.
           </p>
         </div>
       </section>
 
-      {/* Top voices — placeholder until real upvotes exist */}
+      {/* Top voices */}
       <section className="mt-8">
         <p className="text-11 text-text-secondary label-caps">Top voices</p>
-        <div className="mt-3 rounded-md border-hairline bg-bg-secondary p-5">
-          <p className="text-15 text-text-secondary">
-            Statements that win the room show up here the next morning.
-          </p>
-        </div>
+        <TopVoicesFeed voices={[]} />
       </section>
 
       {/* Secondary destinations */}
@@ -127,6 +235,20 @@ export default async function HomePage() {
         >
           <p className="text-11 text-text-secondary label-caps">Yesterday</p>
           <p className="mt-2 font-serif text-18">Top voices</p>
+        </Link>
+        <Link
+          href="/library"
+          className="rounded-md border-hairline bg-bg-secondary p-5 transition-colors duration-100 hover:border-hairline-active"
+        >
+          <p className="text-11 text-text-secondary label-caps">Browse</p>
+          <p className="mt-2 font-serif text-18">Scenario library</p>
+        </Link>
+        <Link
+          href="/profile"
+          className="rounded-md border-hairline bg-bg-secondary p-5 transition-colors duration-100 hover:border-hairline-active"
+        >
+          <p className="text-11 text-text-secondary label-caps">Identity</p>
+          <p className="mt-2 font-serif text-18">Fingerprint</p>
         </Link>
       </section>
 

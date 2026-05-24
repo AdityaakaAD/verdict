@@ -7,20 +7,32 @@ import { getSocket, disconnectSocket, type AppSocket } from './client';
 
 export type RoomStatus = 'connecting' | 'live' | 'error' | 'completed';
 
+export interface Rebuttal {
+  id: string;
+  parentParticipantId: string;
+  authorParticipantId: string;
+  authorAlias: string;
+  text: string;
+}
+
 export interface UseRoomResult {
   snapshot: RoomSnapshot | null;
   status: RoomStatus;
+  rebuttals: Rebuttal[];
   submitStatement: (text: string) => void;
   submitVote: (vote: VoteSide) => void;
   changeVote: (vote: VoteSide) => void;
   upvote: (participantId: string) => void;
   sendTyping: (isTyping: boolean) => void;
+  sendRebuttal: (parentParticipantId: string, text: string) => void;
+  report: (participantId: string) => void;
 }
 
 export function useRoom(roomId: string): UseRoomResult {
   const router = useRouter();
   const [snapshot, setSnapshot] = useState<RoomSnapshot | null>(null);
   const [status, setStatus] = useState<RoomStatus>('connecting');
+  const [rebuttals, setRebuttals] = useState<Rebuttal[]>([]);
   const socketRef = useRef<AppSocket | null>(null);
 
   useEffect(() => {
@@ -47,6 +59,11 @@ export function useRoom(roomId: string): UseRoomResult {
         if (snap.phase === 'completed') setStatus('completed');
       });
 
+      sock.on('rebuttal_received', (rebuttal) => {
+        if (!mounted) return;
+        setRebuttals((prev) => [...prev, rebuttal]);
+      });
+
       sock.on('error', () => {
         if (!mounted) return;
         setStatus('error');
@@ -59,6 +76,7 @@ export function useRoom(roomId: string): UseRoomResult {
       mounted = false;
       socketRef.current?.emit('leave_room', { roomId });
       socketRef.current?.off('room_state');
+      socketRef.current?.off('rebuttal_received');
       socketRef.current?.off('error');
     };
   }, [roomId]);
@@ -83,5 +101,13 @@ export function useRoom(roomId: string): UseRoomResult {
     socketRef.current?.emit('typing', { roomId, isTyping });
   }, [roomId]);
 
-  return { snapshot, status, submitStatement, submitVote, changeVote, upvote, sendTyping };
+  const sendRebuttal = useCallback((parentParticipantId: string, text: string) => {
+    socketRef.current?.emit('send_rebuttal', { roomId, parentParticipantId, text });
+  }, [roomId]);
+
+  const report = useCallback((participantId: string) => {
+    socketRef.current?.emit('report', { participantId, reason: 'other' });
+  }, []);
+
+  return { snapshot, status, rebuttals, submitStatement, submitVote, changeVote, upvote, sendTyping, sendRebuttal, report };
 }

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { TIERS, type AvatarId, type TierId } from '@verdict/shared';
 import { createClient } from '@/lib/supabase/server';
 import { AvatarMark } from '@/components/game/avatar-mark';
+import { MoralFingerprint } from './fingerprint';
 
 export const metadata = { title: 'Profile — Verdict' };
 export const dynamic = 'force-dynamic';
@@ -113,9 +114,15 @@ export default async function ProfilePage() {
         <p className="text-11 text-text-secondary label-caps">Recent rounds</p>
         <div className="mt-3 rounded-md border-hairline bg-bg-secondary p-5">
           <p className="text-15 text-text-secondary">
-            Your round history will land here. Practice doesn’t count.
+            Your round history will land here. Practice doesn&apos;t count.
           </p>
         </div>
+      </section>
+
+      {/* Moral Fingerprint */}
+      <section className="mt-10">
+        <p className="text-11 text-text-secondary label-caps mb-3">Moral Fingerprint</p>
+        <MoralFingerprint userId={user.id} />
       </section>
     </main>
   );

@@ -16,7 +16,10 @@ import {
 
 // Railway injects PORT; fall back to SOCKET_PORT for local dev.
 const PORT = Number(process.env.PORT ?? process.env.SOCKET_PORT ?? 4000);
-const CORS_ORIGIN = process.env.CORS_ORIGIN ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+const rawCors = process.env.CORS_ORIGIN ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+const CORS_ORIGIN: string | string[] = rawCors.includes(',')
+  ? rawCors.split(',').map((s) => s.trim())
+  : rawCors;
 
 const httpServer = createServer((req, res) => {
   if (req.url === '/health') {
@@ -151,6 +154,18 @@ io.on('connection', (socket) => {
 
   socket.on('typing', ({ roomId, isTyping }) => {
     socket.to(roomId).emit('statement_typing', { participantId: `player_${user.id}`, isTyping });
+  });
+
+  socket.on('send_rebuttal', ({ roomId, parentParticipantId, text }) => {
+    const state = getRoomState(roomId);
+    if (!state || state.phase !== 'debate') return;
+    io.to(roomId).emit('rebuttal_received', {
+      id: `r_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      parentParticipantId,
+      authorParticipantId: `player_${user.id}`,
+      authorAlias: user.alias,
+      text: text.slice(0, 300),
+    });
   });
 
   // -------------------------------------------------------------------------

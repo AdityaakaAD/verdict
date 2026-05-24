@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, Lora, JetBrains_Mono } from 'next/font/google';
+import { PostHogProvider } from '@/components/providers/PostHogProvider';
 import './globals.css';
 
 const inter = Inter({
@@ -53,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${lora.variable} ${mono.variable}`}>
       <body className="min-h-screen bg-bg-primary text-text-primary font-sans antialiased">
-        {children}
+        <PostHogProvider>{children}</PostHogProvider>
       </body>
     </html>
   );

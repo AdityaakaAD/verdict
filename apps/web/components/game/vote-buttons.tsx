@@ -2,46 +2,42 @@
 
 import { motion } from 'framer-motion';
 import type { Scenario, VoteSide } from '@verdict/shared';
-import { cn } from '@/lib/cn';
 import { sounds } from '@/lib/sounds';
 
-// Neutral-grey vote buttons used during the voting phase. Per spec section 11
-// the color reveal is the drama — these stay colorless until after the
-// reveal animation runs. Use ColoredVoteButtons for the conversion phase
-// where sides have already been revealed.
+// Four states (spec § UI/VoteButtons):
+//   idle     — neither voted; both buttons breathe (scale pulse 2s loop)
+//   prelock  — one selected, not yet locked; dot indicator, NO color
+//   locked   — vote cast, no change allowed; other button dimmed
+//   revealed — showColors=true; crimson/blue applied (conversion phase only)
+//
+// Color is NEVER shown before the reveal. This is the rule that must never break.
 
 interface Props {
   scenario: Scenario;
   selected: VoteSide | null;
-  /** When true (conversion phase), tapping a button re-casts the user's vote. */
   allowChange?: boolean;
   onPick: (vote: VoteSide) => void;
-  /** Optional flavor — show the side that the current vote is on, with the
-   *  reveal colors applied. Used during conversion. */
   showColors?: boolean;
 }
 
 export function VoteButtons({ scenario, selected, allowChange, onPick, showColors }: Props) {
+  const locked = selected !== null && !allowChange;
+
   return (
     <div className="grid grid-cols-1 gap-3">
-      <VoteButton
-        side="a"
-        label={scenario.sideALabel}
-        meaning={scenario.sideAMeaning}
-        selected={selected === 'a'}
-        showColors={showColors}
-        disabled={!allowChange && selected !== null}
-        onPick={() => onPick('a')}
-      />
-      <VoteButton
-        side="b"
-        label={scenario.sideBLabel}
-        meaning={scenario.sideBMeaning}
-        selected={selected === 'b'}
-        showColors={showColors}
-        disabled={!allowChange && selected !== null}
-        onPick={() => onPick('b')}
-      />
+      {(['a', 'b'] as VoteSide[]).map((side) => (
+        <VoteButton
+          key={side}
+          side={side}
+          label={side === 'a' ? scenario.sideALabel : scenario.sideBLabel}
+          meaning={side === 'a' ? scenario.sideAMeaning : scenario.sideBMeaning}
+          isSelected={selected === side}
+          isOtherSelected={selected !== null && selected !== side}
+          locked={locked}
+          showColors={showColors}
+          onPick={() => onPick(side)}
+        />
+      ))}
     </div>
   );
 }
@@ -50,45 +46,94 @@ interface ButtonProps {
   side: VoteSide;
   label: string;
   meaning: string;
-  selected: boolean;
+  isSelected: boolean;
+  isOtherSelected: boolean;
+  locked: boolean;
   showColors?: boolean;
-  disabled?: boolean;
   onPick: () => void;
 }
 
-function VoteButton({ side, label, meaning, selected, showColors, disabled, onPick }: ButtonProps) {
-  const colorClass = showColors
-    ? side === 'a'
-      ? selected
-        ? 'border-hairline-accent bg-vote-a/[0.12] text-text-primary'
-        : 'border-hairline bg-bg-secondary text-text-primary hover:border-hairline-active'
-      : selected
-        ? 'border-[0.5px] border-[var(--vote-b)] bg-[color:var(--vote-b)]/[0.12] text-text-primary'
-        : 'border-hairline bg-bg-secondary text-text-primary hover:border-hairline-active'
-    : selected
-      ? 'border-hairline-active bg-bg-tertiary text-text-primary'
-      : 'border-hairline bg-bg-secondary text-text-primary hover:border-hairline-active';
+function VoteButton({
+  side,
+  label,
+  meaning,
+  isSelected,
+  isOtherSelected,
+  locked,
+  showColors,
+  onPick,
+}: ButtonProps) {
+  const idle = !isSelected && !isOtherSelected;
+
+  // Border color — never crimson/blue before reveal
+  let borderColor = 'var(--vote-neutral)';
+  let bgColor = 'transparent';
+  if (showColors && isSelected) {
+    borderColor = side === 'a' ? 'var(--vote-a)' : 'var(--vote-b)';
+    bgColor = side === 'a' ? 'rgba(255,59,48,0.10)' : 'rgba(45,127,249,0.10)';
+  } else if (isSelected) {
+    borderColor = '#3A3A42';
+  } else if (isOtherSelected) {
+    borderColor = 'var(--vote-neutral)';
+  }
 
   return (
     <motion.button
       type="button"
-      whileTap={disabled ? undefined : { scale: 0.96 }}
-      transition={{ duration: 0.1, ease: 'easeOut' }}
+      // Breathing invitation while idle; stops once any vote cast
+      animate={idle ? { scale: [1, 1.015, 1] } : { scale: 1 }}
+      transition={idle ? { duration: 2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.1 }}
+      whileTap={locked && !showColors ? undefined : { scale: 0.96 }}
       onClick={() => {
-        if (disabled) return;
+        if (locked && !showColors) return;
         sounds.play('vote_tap');
-        if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+        navigator.vibrate?.(10);
         onPick();
       }}
-      disabled={disabled}
-      className={cn(
-        'flex flex-col items-start gap-1 rounded-md p-4 text-left transition-colors duration-100',
-        colorClass,
-        disabled && 'cursor-not-allowed opacity-60',
-      )}
+      disabled={locked && !showColors}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: 6,
+        padding: '16px',
+        borderRadius: 10,
+        border: `0.5px solid ${borderColor}`,
+        background: bgColor,
+        cursor: locked && !showColors ? 'not-allowed' : 'pointer',
+        opacity: isOtherSelected && !showColors ? 0.5 : 1,
+        transition: 'border-color 0.2s, opacity 0.2s, background 0.2s',
+        textAlign: 'left',
+        fontFamily: 'inherit',
+        width: '100%',
+      }}
     >
-      <span className="font-serif text-18 font-medium">{label}</span>
-      <span className="text-13 text-text-secondary">{meaning}</span>
+      {/* Prelock dot — appears when this button is selected, no color */}
+      {isSelected && !showColors && (
+        <span
+          style={{
+            width: 5,
+            height: 5,
+            borderRadius: '50%',
+            background: 'var(--text-secondary)',
+            display: 'block',
+          }}
+        />
+      )}
+      <span
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 18,
+          fontWeight: 500,
+          color: 'var(--text-primary)',
+          lineHeight: 1.3,
+        }}
+      >
+        {label}
+      </span>
+      <span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
+        {meaning}
+      </span>
     </motion.button>
   );
 }

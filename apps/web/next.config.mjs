@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  transpilePackages: ['@verdict/shared'],
+  transpilePackages: ['@verdict/shared', '@verdict/scenario-generator'],
   experimental: {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },

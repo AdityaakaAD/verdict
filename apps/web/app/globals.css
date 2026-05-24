@@ -30,6 +30,19 @@
   --success: #30d158;
   --gold: #d4a04c;
 
+  /* Font roles */
+  --font-display: var(--font-lora), 'Lora', serif;
+  --font-body: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-mono-display: var(--font-mono), 'JetBrains Mono', ui-monospace, monospace;
+
+  /* 3D scene colors */
+  --room-floor: #0d0d0f;
+  --room-wall: #111114;
+  --room-accent: #1a1a1e;
+  --desk-color: #141416;
+  --wood-dark: #1c1a17;
+  --ambient-light: #ff3b30;
+
   color-scheme: dark;
 }
 

@@ -41,6 +41,7 @@ export interface ClientToServerEvents {
     details?: string;
   }) => void;
   typing: (payload: { roomId: string; isTyping: boolean }) => void;
+  send_rebuttal: (payload: { roomId: string; parentParticipantId: string; text: string }) => void;
 }
 
 // =============================================================================
@@ -65,6 +66,13 @@ export interface ServerToClientEvents {
     toSide: VoteSide;
   }) => void;
   result: (payload: ResultPayload) => void;
+  rebuttal_received: (payload: {
+    id: string;
+    parentParticipantId: string;
+    authorParticipantId: string;
+    authorAlias: string;
+    text: string;
+  }) => void;
   error: (error: SocketError) => void;
 }
 
@@ -84,6 +92,7 @@ export const SOCKET_EVENTS = {
   UPVOTE_STATEMENT: 'upvote_statement',
   REPORT: 'report',
   TYPING: 'typing',
+  SEND_REBUTTAL: 'send_rebuttal',
   // s2c matchmaking
   ROOM_READY: 'room_ready',
   QUEUE_POSITION: 'queue_position',
@@ -97,5 +106,6 @@ export const SOCKET_EVENTS = {
   REVEAL: 'reveal',
   CONVERSION_EVENT: 'conversion_event',
   RESULT: 'result',
+  REBUTTAL_RECEIVED: 'rebuttal_received',
   ERROR: 'error',
 } as const;
